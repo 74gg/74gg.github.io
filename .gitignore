@@ -1,23 +1,3 @@
-# Output files
-
-.git/*
-*.log*
-
-# Environment variables
-
-.env
-
-# Windows or MacOS
-
-.DS_Store
-*.Identifier
-
-# Node.js
-
-dist/
-node_modules/
-
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
