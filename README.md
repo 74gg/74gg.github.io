@@ -24,8 +24,6 @@
 
 ## Getting Started  
 
-  [Why use pnpm?](https://pnpm.io/motivation)  
-
 ### 🏗️ Clones the blackstar project  
 
   ```sh
@@ -42,29 +40,15 @@
   pnpm install
   ```  
 
-  ```sh
-  npm install
-  ```  
-
-  ```sh
-  yarn install
-  ```  
-
 ### ✨ Activates the preview in your browser  
 
   ```sh
   pnpm dev
   ```  
 
-  ```sh
-  npm run dev
-  ```  
-
-  ```sh
-  yarn dev
-  ```  
-
   You can see preview on [localhost:3000.](http://localhost:3000/)  
+
+- [Why use pnpm?](https://pnpm.io/motivation)  
 
 ## Contributing  
 
