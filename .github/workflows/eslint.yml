@@ -20,33 +20,68 @@ on:
 
 permissions:
   security-events: write
-
   actions: read
   contents: read
 
 jobs:
   eslint:
     name: Run eslint scanning
+
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # https://github.com/actions/checkout
+      - name: Checkout (Cloning source codes / ソースコードのクローン)
+        uses: actions/checkout@v4
 
-      - name: Install ESLint
+      # Github action don't have pnpm, so pnpm must be installed.
+      # - https://github.com/pnpm/action-setup
+      # - https://github.com/pnpm/pnpm
+      #
+      # The warning displayed, but no problem now.
+      # - https://github.com/pnpm/action-setup/issues/99
+      #
+      # When this become an error, needs to install pnpm with npm or yarn.
+      # - https://github.com/pnpm/action-setup/issues/99#issuecomment-1905690976
+      - uses: pnpm/action-setup@v2
+        name: Installing pnpm / pnpmのインストール
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      # Probably this step will restore pnpm cache.
+      #
+      # Node version 20+ must be used.
+      # - https://github.com/actions/setup-node
+      # - https://github.com/actions/setup-node/?tab=readme-ov-file#supported-version-syntax
+      # - https://nodejs.org/en/about/previous-releases
+      # - https://github.blog/changelog/2023-09-22-github-actions-transitioning-from-node-16-to-node-20
+      - name: Setting up Node.js / Node.jsの設定
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/iron"
+          cache: pnpm
+
+      - name: Installing ESLint / ESLintのインストール
         run: |
-          npm install eslint@8.10.0
-          npm install @microsoft/eslint-formatter-sarif@2.1.7
+          pnpm install eslint
+          pnpm install @typescript-eslint/parser
+          pnpm install @typescript-eslint/eslint-plugin
+          pnpm install eslint-plugin-react
+          pnpm install @microsoft/eslint-formatter-sarif
 
-      - name: Run ESLint
-        run: npx eslint .
-          --config .eslintrc.js
+      - name: Running ESLint / ESLintの実行
+        run: pnpm eslint ./src
+          --config .eslintrc
           --ext .js,.jsx,.ts,.tsx
           --format @microsoft/eslint-formatter-sarif
           --output-file eslint-results.sarif
         continue-on-error: true
 
-      - name: Upload analysis results to GitHub
+      - name: Uploading analysis results / 解析データのアップロード
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: eslint-results.sarif
