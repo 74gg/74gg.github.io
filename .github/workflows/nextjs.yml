@@ -1,3 +1,17 @@
+# An workflow file for building website and deploying to github pages.
+#
+# Maybe there are better ways.
+# If you have suggestions, please post them to `https://github.com/74gg/74gg.github.io/issues/new/choose`.
+#
+# Why not support npm or yarn?
+# - Because they are hassles.
+#   It's good to have alternatives, but it's costing.
+#   However, if needs them, supports them.
+#
+# Why names aren't in English only?
+# - `name` isn't an identifier, but a label used in UI.
+#   So I don't know whether there are rules, but doesn't need follow them.
+
 name: Deploy to Github Pages
 
 on:
@@ -28,9 +42,8 @@ jobs:
 
     # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
-
       # https://github.com/actions/checkout
-      - name: Checkout
+      - name: Checkout (Cloning source codes / ソースコードのクローン)
         uses: actions/checkout@v4
 
       # Github action don't have pnpm, so pnpm must be installed.
@@ -43,25 +56,28 @@ jobs:
       # When this become an error, needs to install pnpm with npm or yarn.
       # - https://github.com/pnpm/action-setup/issues/99#issuecomment-1905690976
       - uses: pnpm/action-setup@v2
-        name: Install pnpm
+        name: Installing pnpm / pnpmのインストール
         id: pnpm-install
         with:
           version: 8
           run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+      # Probably these aren't needed.
+      #
+      # - name: Get pnpm store directory
+      #   shell: bash
+      #   run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      #
+      # - uses: actions/cache@v4
+      #   name: Setup pnpm cache
+      #   with:
+      #     path: ${{ env.STORE_PATH }}
+      #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pnpm-store-
 
       # What is this?
+      #
       # - name: Detect package manager
       #   id: detect-package-manager
       #   run: |
@@ -69,20 +85,22 @@ jobs:
       #     echo $GITHUB_OUTPUT
       #     exit 0
 
-      # https://github.com/actions/setup-node
-      # https://github.com/actions/setup-node/?tab=readme-ov-file#supported-version-syntax
-      # https://nodejs.org/en/about/previous-releases
-      # https://github.blog/changelog/2023-09-22-github-actions-transitioning-from-node-16-to-node-20
-      - name: Setup Node
+      # Probably this step will restore pnpm cache.
+      #
+      # Node version 20+ must be used.
+      # - https://github.com/actions/setup-node
+      # - https://github.com/actions/setup-node/?tab=readme-ov-file#supported-version-syntax
+      # - https://nodejs.org/en/about/previous-releases
+      # - https://github.blog/changelog/2023-09-22-github-actions-transitioning-from-node-16-to-node-20
+      - name: Setting up Node.js / Node.jsの設定
         uses: actions/setup-node@v4
         with:
           node-version: "lts/iron"
-          # Probably this impossible.
-          # cache: pnpm
+          cache: pnpm
 
       # https://github.com/actions/configure-pages
       # https://docs.github.com/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages#configuring-the-configure-pages-action
-      - name: Setup Pages
+      - name: Enabling and configuring GitHub Pages / GitHub Pagesの有効化と設定
         uses: actions/configure-pages@v4
         with:
           # If you images has problems, see below.
@@ -91,24 +109,28 @@ jobs:
 
       # https://github.com/actions/cache
       # https://docs.github.com/ja/actions/using-workflows/caching-dependencies-to-speed-up-workflows
-      - name: Restore cache
+      - name: Restoring caches of Next.js / Next.jsのキャッシュを復元
         uses: actions/cache@v4
         with:
           path: .next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
           restore-keys: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
-      - name: Install dependencies
+      - name: Installing dependencies / 依存関係のインストール
         run: pnpm install
 
-      - name: Build with Next.js
+      # If this command can't execut, replace to below.
+      # - pnpm run build
+      # - pnpm next build
+      - name: Building the website / ウェブサイトのビルド
         run: pnpm build
 
-      - name: Checks all files
-        run: ls -la
+      # GitHub Pages uses `github.config.js`. (not `github.config.mjs`)
+      # - name: Displaying all files / ファイルの表示
+      #   run: ls -la
 
       # https://github.com/actions/upload-pages-artifact
-      - name: Upload artifact
+      - name: Uploading contents for deployment / デプロイするコンテンツのアップロード
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
@@ -126,6 +148,6 @@ jobs:
 
     steps:
       # https://github.com/actions/deploy-pages
-      - name: Deploy to GitHub Pages
+      - name: Deploying contents to GitHub Pages / コンテンツのデプロイ
         id: deployment
         uses: actions/deploy-pages@v4
