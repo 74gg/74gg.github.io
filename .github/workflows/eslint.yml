@@ -20,29 +20,73 @@ on:
 
 permissions:
   security-events: write
-
   actions: read
   contents: read
 
 jobs:
   eslint:
     name: Run eslint scanning
+
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # https://github.com/actions/checkout
+      - name: Checkout (Cloning source codes / ソースコードのクローン)
         uses: actions/checkout@v4
+
+      # Github action don't have pnpm, so pnpm must be installed.
+      # - https://github.com/pnpm/action-setup
+      # - https://github.com/pnpm/pnpm
+      #
+      # The warning displayed, but no problem now.
+      # - https://github.com/pnpm/action-setup/issues/99
+      #
+      # When this become an error, needs to install pnpm with npm or yarn.
+      # - https://github.com/pnpm/action-setup/issues/99#issuecomment-1905690976
+      - uses: pnpm/action-setup@v2
+        name: Installing pnpm / pnpmのインストール
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Probably this step will restore pnpm cache.
+      #
+      # Node version 20+ must be used.
+      # - https://github.com/actions/setup-node
+      # - https://github.com/actions/setup-node/?tab=readme-ov-file#supported-version-syntax
+      # - https://nodejs.org/en/about/previous-releases
+      # - https://github.blog/changelog/2023-09-22-github-actions-transitioning-from-node-16-to-node-20
+      - name: Setting up Node.js / Node.jsの設定
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/iron"
+          cache: pnpm
 
       - name: Install ESLint
         run: |
-          npm install eslint
-          npm install @typescript-eslint/parser
-          npm install @typescript-eslint/eslint-plugin
-          npm install eslint-plugin-react
-          npm install @microsoft/eslint-formatter-sarif
+          pnpm install eslint
+          pnpm install @typescript-eslint/parser
+          pnpm install @typescript-eslint/eslint-plugin
+          pnpm install eslint-plugin-react
+          pnpm install @microsoft/eslint-formatter-sarif
 
       - name: Run ESLint
-        run: npx eslint ./src
+        run: pnpm eslint ./src
           --config .eslintrc
           --ext .js,.jsx,.ts,.tsx
           --format @microsoft/eslint-formatter-sarif
