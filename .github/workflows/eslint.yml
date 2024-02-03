@@ -52,18 +52,6 @@ jobs:
           version: 8
           run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
       # Probably this step will restore pnpm cache.
       #
       # Node version 20+ must be used.
@@ -77,7 +65,7 @@ jobs:
           node-version: "lts/iron"
           cache: pnpm
 
-      - name: Install ESLint
+      - name: Installing ESLint / ESLintのインストール
         run: |
           pnpm install eslint
           pnpm install @typescript-eslint/parser
@@ -85,7 +73,7 @@ jobs:
           pnpm install eslint-plugin-react
           pnpm install @microsoft/eslint-formatter-sarif
 
-      - name: Run ESLint
+      - name: Running ESLint / ESLintの実行
         run: pnpm eslint ./src
           --config .eslintrc
           --ext .js,.jsx,.ts,.tsx
@@ -93,7 +81,7 @@ jobs:
           --output-file eslint-results.sarif
         continue-on-error: true
 
-      - name: Upload analysis results to GitHub
+      - name: Uploading analysis results / 解析データのアップロード
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: eslint-results.sarif
