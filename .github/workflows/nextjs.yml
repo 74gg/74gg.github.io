@@ -1,0 +1,153 @@
+# An workflow file for building website and deploying to github pages.
+#
+# Maybe there are better ways.
+# If you have suggestions, please post them to `https://github.com/74gg/74gg.github.io/issues/new/choose`.
+#
+# Why not support npm or yarn?
+# - Because they are hassles.
+#   It's good to have alternatives, but it's costing.
+#   However, if needs them, supports them.
+#
+# Why names aren't in English only?
+# - `name` isn't an identifier, but a label used in UI.
+#   So I don't know whether there are rules, but doesn't need follow them.
+
+name: Deploy to Github Pages
+
+on:
+  push:
+    branches: ["main"]
+
+  # Probably if you remove colon, you can run it manually.
+  # https://docs.github.com/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch
+  # https://docs.github.com/actions/using-workflows/manually-running-a-workflow
+  workflow_dispatch:
+
+# https://docs.github.com/actions/using-jobs/assigning-permissions-to-jobs
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# https://docs.github.com/actions/using-jobs/using-concurrency
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
+    runs-on: ubuntu-latest
+
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idsteps
+    steps:
+      # https://github.com/actions/checkout
+      - name: Checkout (Cloning source codes / ソースコードのクローン)
+        uses: actions/checkout@v4
+
+      # Github action don't have pnpm, so pnpm must be installed.
+      # - https://github.com/pnpm/action-setup
+      # - https://github.com/pnpm/pnpm
+      #
+      # The warning displayed, but no problem now.
+      # - https://github.com/pnpm/action-setup/issues/99
+      #
+      # When this become an error, needs to install pnpm with npm or yarn.
+      # - https://github.com/pnpm/action-setup/issues/99#issuecomment-1905690976
+      - uses: pnpm/action-setup@v2
+        name: Installing pnpm / pnpmのインストール
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      # Probably these aren't needed.
+      #
+      # - name: Get pnpm store directory
+      #   shell: bash
+      #   run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      #
+      # - uses: actions/cache@v4
+      #   name: Setup pnpm cache
+      #   with:
+      #     path: ${{ env.STORE_PATH }}
+      #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pnpm-store-
+
+      # What is this?
+      #
+      # - name: Detect package manager
+      #   id: detect-package-manager
+      #   run: |
+      #     echo "runner=pnpm" >> $GITHUB_OUTPUT
+      #     echo $GITHUB_OUTPUT
+      #     exit 0
+
+      # Probably this step will restore pnpm cache.
+      #
+      # Node version 20+ must be used.
+      # - https://github.com/actions/setup-node
+      # - https://github.com/actions/setup-node/?tab=readme-ov-file#supported-version-syntax
+      # - https://nodejs.org/en/about/previous-releases
+      # - https://github.blog/changelog/2023-09-22-github-actions-transitioning-from-node-16-to-node-20
+      - name: Setting up Node.js / Node.jsの設定
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/iron"
+          cache: pnpm
+
+      # https://github.com/actions/configure-pages
+      # https://docs.github.com/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages#configuring-the-configure-pages-action
+      - name: Enabling and configuring GitHub Pages / GitHub Pagesの有効化と設定
+        uses: actions/configure-pages@v4
+        with:
+          # If you images has problems, see below.
+          # https://nextjs.org/docs/api-reference/next/image#unoptimized
+          static_site_generator: next
+
+      # https://github.com/actions/cache
+      # https://docs.github.com/ja/actions/using-workflows/caching-dependencies-to-speed-up-workflows
+      - name: Restoring caches of Next.js / Next.jsのキャッシュを復元
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+
+      - name: Installing dependencies / 依存関係のインストール
+        run: pnpm install
+
+      # If this command can't execut, replace to below.
+      # - pnpm run build
+      # - pnpm next build
+      - name: Building the website / ウェブサイトのビルド
+        run: pnpm build
+
+      # GitHub Pages uses `github.config.js`. (not `github.config.mjs`)
+      # - name: Displaying all files / ファイルの表示
+      #   run: ls -la
+
+      # https://github.com/actions/upload-pages-artifact
+      - name: Uploading contents for deployment / デプロイするコンテンツのアップロード
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    # https://docs.github.com/actions/using-workflows/about-workflows#creating-dependent-jobs
+    needs: build
+
+    # https://github.com/74gg/74gg.github.io/deployments
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # https://github.com/actions/deploy-pages
+      - name: Deploying contents to GitHub Pages / コンテンツのデプロイ
+        id: deployment
+        uses: actions/deploy-pages@v4

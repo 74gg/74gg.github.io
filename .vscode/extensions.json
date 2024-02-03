@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "davidanson.vscode-markdownlint",
+        "oderwat.indent-rainbow",
+        "usernamehw.errorlens",
+        "editorconfig.editorconfig",
+        "esbenp.prettier-vscode",
+        "wraith13.bracket-lens",
+        "dbaeumer.vscode-eslint",
+        "yoavbls.pretty-ts-errors"
+    ]
+}
