@@ -10,7 +10,7 @@
 
 # [Blackstar](https://74gg.github.io/)  
 
-  **Blackstar** is the website for an organization **@74gg**.  
+  **Blackstar** is the website for an organization [**@74gg**](https://github.com/74gg).  
 
   [![License][license]](https://github.com/74gg/74gg.github.io/blob/main/LICENSE)
   [![Modified][modified]](https://github.com/74gg/74gg.github.io/commits/)
@@ -19,19 +19,20 @@
   [![TypeScript][typescript]](https://www.typescriptlang.org/)
   [![pnpm][pnpm]](https://pnpm.io/)
   [![Next.js][nextjs]](https://nextjs.org/)
-  [![Static Badge][nextui]](https://nextui.org/)
-  [![Static Badge][tailwind]](https://tailwindcss.com/)
+  [![NextUI][nextui]](https://nextui.org/)
+  [![Tailwind][tailwind]](https://tailwindcss.com/)
+  ![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-181717?style=for-the-badge&logo=github)
 
 ## Getting Started  
 
 ### 🏗️ Clones the blackstar project  
 
   ```sh
-  git clone git@github.com:74gg/74gg.github.io.git --depth 1
+  git clone git@github.com:74gg/74gg.github.io.git
   ```  
 
   ```sh
-  git clone https://github.com/74gg/74gg.github.io.git --depth 1
+  git clone https://github.com/74gg/74gg.github.io.git
   ```  
 
 ### 📦 Installs dependencies  
@@ -46,28 +47,12 @@
   pnpm dev
   ```  
 
-  You can see preview on [localhost:3000.](http://localhost:3000/)  
+  You can see preview on [localhost:3000](http://localhost:3000/).  
 
-- [Why use pnpm?](https://pnpm.io/motivation)  
+### ⚒️ Build  
 
-## Contributing  
+  ```sh
+  pnpm build
+  ```
 
-[deepl]: https://www.deepl.com/translator
-[deepl-badge]: https://img.shields.io/badge/DeepL-0F2B46?style=for-the-badge&logo=deepl
-[google-translate]: https://translate.google.com
-[google-translate-badge]: https://img.shields.io/badge/Google_Translate-4285F4?style=for-the-badge&logo=googletranslate&logoColor=white
-[chatgpt]: https://chat.openai.com/
-[chatgpt-badge]: https://img.shields.io/badge/Chat_GPT-412991?style=for-the-badge&logo=openai
-
-### Languages  
-
-  Please use **Japanese** or **English**.  
-
-  [![Static Badge][deepl-badge]][deepl]
-  [![Static Badge][google-translate-badge]][google-translate]
-  [![Static Badge][chatgpt-badge]][chatgpt]  
-
-## References  
-
-- [Next.js Documentation](https://nextjs.orl.j,ok;/６９/docs)
-- [Learn Next.js](https://nextjs.org/learn)
+  The result is output to `./out`.  

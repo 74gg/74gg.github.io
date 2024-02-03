@@ -1,31 +1,40 @@
-name: Deploy to Pages
+name: Deploy to Github Pages
 
 on:
   push:
     branches: ["main"]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Probably if you remove colon, you can run it manually.
+  # https://docs.github.com/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch
+  # https://docs.github.com/actions/using-workflows/manually-running-a-workflow
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# https://docs.github.com/actions/using-jobs/assigning-permissions-to-jobs
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# https://docs.github.com/actions/using-jobs/using-concurrency
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
   build:
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
     runs-on: ubuntu-latest
+
+    # https://github.com/74gg/74gg.github.io/actions
     steps:
+
+      # https://github.com/actions/checkout
       - name: Checkout
         uses: actions/checkout@v4
 
+      # https://github.com/pnpm/action-setup
+      # https://github.com/pnpm/pnpm
       - uses: pnpm/action-setup@v2
         name: Install pnpm
         id: pnpm-install
@@ -37,57 +46,65 @@ jobs:
         id: detect-package-manager
         run: |
           echo "runner=pnpm" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
           exit 0
 
+      # https://github.com/actions/setup-node
       # https://github.com/actions/setup-node/?tab=readme-ov-file#supported-version-syntax
       # https://nodejs.org/en/about/previous-releases
+      # https://github.blog/changelog/2023-09-22-github-actions-transitioning-from-node-16-to-node-20
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "lts/hydrogen"
+          node-version: "lts/iron"
           cache: pnpm
 
+      # https://github.com/actions/configure-pages
+      # https://docs.github.com/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages#configuring-the-configure-pages-action
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
         with:
-          # Automatically inject basePath in your Next.js configuration file and disable
-          # server side image optimization (https://nextjs.org/docs/api-reference/next/image#unoptimized).
-          #
-          # You may remove this line if you want to manage the configuration yourself.
+          # If you images has problems, see below.
+          # https://nextjs.org/docs/api-reference/next/image#unoptimized
           static_site_generator: next
 
+      # https://github.com/actions/cache
+      # https://docs.github.com/ja/actions/using-workflows/caching-dependencies-to-speed-up-workflows
       - name: Restore cache
         uses: actions/cache@v4
         with:
-          path: |
-            .next/cache
-          # Generate a new cache whenever packages or source files change.
+          path: .next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          # If source files changed but packages didn't, rebuild from a prior cache.
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+          restore-keys: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Build with Next.js
-        run: pnpm next build
+        run: pnpm build
 
-      - name: default config is useless
+      - name: Checks all files
         run: ls -la
 
+      # https://github.com/actions/upload-pages-artifact
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
 
   deploy:
+    runs-on: ubuntu-latest
+
+    # https://docs.github.com/actions/using-workflows/about-workflows#creating-dependent-jobs
+    needs: build
+
+    # https://github.com/74gg/74gg.github.io/deployments
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
+
     steps:
+      # https://github.com/actions/deploy-pages
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
