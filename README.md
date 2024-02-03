@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# template
-=======
 [license]: https://flat.badgen.net/github/license/74gg/74gg.github.io?label=License&labelColor=black
 [modified]: https://flat.badgen.net/github/last-commit/74gg/74gg.github.io?label=Modified&labelColor=black
 [commits]: https://flat.badgen.net/github/commits/74gg/74gg.github.io?labelColor=black
@@ -59,4 +56,3 @@
   ```
 
   The result is output to `./out`.  
->>>>>>> origin/main

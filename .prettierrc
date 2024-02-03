@@ -15,9 +15,16 @@
             }
         },
         {
-            "files": ["*.ts", "*.tsx"],
+            "files": ["*.ts", "*.js"],
             "options": {
                 "tabWidth": 4,
+                "singleQuote": true
+            }
+        },
+        {
+            "files": ["*.tsx", "*.jsx"],
+            "options": {
+                "tabWidth": 2,
                 "singleQuote": true
             }
         }
